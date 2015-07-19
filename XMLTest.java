@@ -294,4 +294,19 @@ public class XMLTest {
         JSONObject expectedJsonObject = XML.toJSONObject(expectedStr);
         Util.compareActualVsExpectedJsonObjects(finalJsonObject,expectedJsonObject);
     }
+
+
+    @Test
+    public void shouldHandleNullNodeValue()
+    {
+        JSONObject inputJSON = new JSONObject();
+        inputJSON.put("nullValue", JSONObject.NULL);
+
+        String expectedXML = "<nullValue/>";
+
+        String resultXML = XML.toString(inputJSON);
+
+
+        assertEquals(expectedXML, resultXML);
+    }
 }
