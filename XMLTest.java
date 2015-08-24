@@ -27,9 +27,7 @@ public class XMLTest {
      */
     @Test(expected=NullPointerException.class)
     public void shouldHandleNullXML() {
-        String xmlStr = null;
-        JSONObject jsonObject = XML.toJSONObject(xmlStr);
-        assertTrue("jsonObject should be empty", jsonObject.length() == 0);
+        compareStringToJSONObject(null, "");
     }
 
     /**
@@ -38,9 +36,7 @@ public class XMLTest {
     @Test
     public void shouldHandleEmptyXML() {
 
-        String xmlStr = "";
-        JSONObject jsonObject = XML.toJSONObject(xmlStr);
-        assertTrue("jsonObject should be empty", jsonObject.length() == 0);
+        compareStringToJSONObject("", "");
     }
 
     /**
@@ -49,8 +45,7 @@ public class XMLTest {
     @Test
     public void shouldHandleNonXML() {
         String xmlStr = "{ \"this is\": \"not xml\"}";
-        JSONObject jsonObject = XML.toJSONObject(xmlStr);
-        assertTrue("xml string should be empty", jsonObject.length() == 0);
+        compareJSONObjectToString(xmlStr, "");
     }
 
     /**
@@ -70,6 +65,32 @@ public class XMLTest {
             "</addresses>";
         try {
             XML.toJSONObject(xmlStr);
+            assertTrue("Expecting a JSONException", false);
+        } catch (JSONException e) {
+            assertTrue("Expecting an exception message",
+                    "Misshaped tag at 176 [character 14 line 5]".
+                    equals(e.getMessage()));
+        }
+    }
+
+
+    /**
+     * Invalid XML read from a StringReader object (tag contains a frontslash).
+     * Expects a JSONException
+     */
+    @Test
+    public void shouldHandleInvalidSlashInTagWithReader() {
+        String xmlStr = 
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
+            "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
+            "   xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
+            "    <address>\n"+
+            "       <name/x>\n"+
+            "       <street>abc street</street>\n"+
+            "   </address>\n"+
+            "</addresses>";
+        try {
+            XML.toJSONObject(new StringReader(xmlStr));
             assertTrue("Expecting a JSONException", false);
         } catch (JSONException e) {
             assertTrue("Expecting an exception message",
@@ -104,11 +125,36 @@ public class XMLTest {
     }
 
     /**
-     * Invalid XML string ('!' char and no closing tag brace)
+     * Invalid XML string ('!' char in tag)
      * Expects a JSONException
      */
     @Test
-    public void shouldHandleInvalidBangNoCloseInTag() {
+    public void shouldHandleInvalidBangInTagWithReader() {
+        String xmlStr = 
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
+            "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
+            "   xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
+            "    <address>\n"+
+            "       <name/>\n"+
+            "       <!>\n"+
+            "   </address>\n"+
+            "</addresses>";
+        try {
+            XML.toJSONObject(xmlStr);
+            assertTrue("Expecting a JSONException", false);
+        } catch (JSONException e) {
+            assertTrue("Expecting an exception message",
+                    "Misshaped meta tag at 215 [character 13 line 8]".
+                    equals(e.getMessage()));
+        }
+    }
+
+    /**
+     * Invalid XML string read from a StringReader ('!' char and no closing tag brace)
+     * Expects a JSONException
+     */
+    @Test
+    public void shouldHandleInvalidBangNoCloseInTagWithReader() {
         String xmlStr = 
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
             "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
@@ -154,6 +200,32 @@ public class XMLTest {
     }
 
     /**
+     * Invalid XML string read from a StringReader (no end brace for tag)
+     * Expects JSONException
+     */
+    @Test
+    public void shouldHandleNoCloseStartTagWithReader() {
+        String xmlStr = 
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
+            "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
+            "   xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
+            "    <address>\n"+
+            "       <name/>\n"+
+            "       <abc\n"+
+            "   </address>\n"+
+            "</addresses>";
+        try {
+            XML.toJSONObject(new StringReader(xmlStr));
+            assertTrue("Expecting a JSONException", false);
+        } catch (JSONException e) {
+            assertTrue("Expecting an exception message",
+                    "Misplaced '<' at 193 [character 4 line 7]".
+                    equals(e.getMessage()));
+        }
+    }
+
+
+    /**
      * Invalid XML string (partial CDATA chars in tag name)
      * Expects JSONException
      */
@@ -177,6 +249,32 @@ public class XMLTest {
                     equals(e.getMessage()));
         }
     }
+
+    /**
+     * Invalid XML string read from a StringReader (partial CDATA chars in tag name)
+     * Expects JSONException
+     */
+    @Test
+    public void shouldHandleInvalidCDATABangInTagWithReader() {
+        String xmlStr = 
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"+
+            "<addresses xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
+            "   xsi:noNamespaceSchemaLocation='test.xsd'>\n"+
+            "    <address>\n"+
+            "       <name>Joe Tester</name>\n"+
+            "       <![[]>\n"+
+            "   </address>\n"+
+            "</addresses>";
+        try {
+            XML.toJSONObject(new StringReader(xmlStr));
+            assertTrue("Expecting a JSONException", false);
+        } catch (JSONException e) {
+            assertTrue("Expecting an exception message",
+                    "Expected 'CDATA[' at 204 [character 11 line 6]".
+                    equals(e.getMessage()));
+        }
+    }
+
 
     /**
      * Null JSONObject in XML.toString()
@@ -216,9 +314,10 @@ public class XMLTest {
             "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":\"\",\""+
             "content\":\">\"},\"xsi:noNamespaceSchemaLocation\":\"test.xsd\",\""+
             "xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"}}";
-        JSONObject jsonObject = XML.toJSONObject(xmlStr);
-        JSONObject expectedJsonObject = new JSONObject(expectedStr);
-        Util.compareActualVsExpectedJsonObjects(jsonObject,expectedJsonObject);
+         
+        compareStringToJSONObject(xmlStr, expectedStr);
+        compareReaderToJSONObject(xmlStr, expectedStr);
+        compareFileToJSONObject(xmlStr, expectedStr);
     }
 
     /**
@@ -278,12 +377,14 @@ public class XMLTest {
                 "       <street>Baker street 5</street>\n"+
                 "   </address>\n"+
                 "</addresses>";
-        JSONObject jsonObject = XML.toJSONObject(xmlStr);
+
         String expectedStr = "{\"addresses\":{\"address\":{\"street\":\"Baker "+
                 "street 5\",\"name\":\"Joe Tester\",\"content\":\" this is -- "+
                 "<another> comment \"}}}";
-        JSONObject expectedJsonObject = new JSONObject(expectedStr);
-        Util.compareActualVsExpectedJsonObjects(jsonObject,expectedJsonObject);
+
+        compareStringToJSONObject(xmlStr, expectedStr);
+        compareReaderToJSONObject(xmlStr, expectedStr);
+        compareFileToJSONObject(xmlStr, expectedStr);
     }
 
     /**
@@ -310,12 +411,9 @@ public class XMLTest {
                 "\"test.xsd\",\"xmlns:xsi\":\"http://www.w3.org/2001/"+
                 "XMLSchema-instance\"}}";
         
-        JSONObject jsonObject = XML.toJSONObject(xmlStr);
-        String xmlToStr = XML.toString(jsonObject);
-        JSONObject finalJsonObject = XML.toJSONObject(xmlToStr);
-        JSONObject expectedJsonObject = new JSONObject(expectedStr);
-        Util.compareActualVsExpectedJsonObjects(jsonObject,expectedJsonObject);
-        Util.compareActualVsExpectedJsonObjects(finalJsonObject,expectedJsonObject);
+        compareStringToJSONObject(xmlStr, expectedStr);
+        compareReaderToJSONObject(xmlStr, expectedStr);
+        compareFileToJSONObject(xmlStr, expectedStr);
     }
 
     /**
@@ -328,14 +426,15 @@ public class XMLTest {
             "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":\"\",\""+
             "content\":\">\"},\"xsi:noNamespaceSchemaLocation\":\"test.xsd\",\""+
             "xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"}}";
-        JSONObject expectedJsonObject = new JSONObject(expectedStr);
-        String finalStr = XML.toString(expectedJsonObject);
+
         String expectedFinalStr = "<addresses><address><name/><nocontent/>&gt;"+
                 "</address><xsi:noNamespaceSchemaLocation>test.xsd</xsi:noName"+
                 "spaceSchemaLocation><xmlns:xsi>http://www.w3.org/2001/XMLSche"+
                 "ma-instance</xmlns:xsi></addresses>";
-        assertTrue("Should handle expectedFinal: ["+expectedStr+"] final: ["+
-                finalStr+"]", expectedFinalStr.equals(finalStr));
+
+        compareStringToJSONObject(xmlStr, expectedStr);
+        compareReaderToJSONObject(xmlStr, expectedStr);
+        compareFileToJSONObject(xmlStr, expectedStr);
     }
 
     /**
@@ -349,15 +448,16 @@ public class XMLTest {
             "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":\"\",\""+
             "content\":[1, 2, 3]},\"xsi:noNamespaceSchemaLocation\":\"test.xsd\",\""+
             "xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"}}";
-        JSONObject expectedJsonObject = new JSONObject(expectedStr);
-        String finalStr = XML.toString(expectedJsonObject);
+
         String expectedFinalStr = "<addresses><address><name/><nocontent/>"+
                 "1\n2\n3"+
                 "</address><xsi:noNamespaceSchemaLocation>test.xsd</xsi:noName"+
                 "spaceSchemaLocation><xmlns:xsi>http://www.w3.org/2001/XMLSche"+
                 "ma-instance</xmlns:xsi></addresses>";
-        assertTrue("Should handle expectedFinal: ["+expectedStr+"] final: ["+
-                finalStr+"]", expectedFinalStr.equals(finalStr));
+
+        compareStringToJSONObject(xmlStr, expectedStr);
+        compareReaderToJSONObject(xmlStr, expectedStr);
+        compareFileToJSONObject(xmlStr, expectedStr);
     }
 
     /**
@@ -369,16 +469,16 @@ public class XMLTest {
         String expectedStr = 
             "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":\"\","+
             "\"something\":[1, 2, 3]},\"xsi:noNamespaceSchemaLocation\":\"test.xsd\",\""+
-            "xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"}}";
-        JSONObject expectedJsonObject = new JSONObject(expectedStr);
-        String finalStr = XML.toString(expectedJsonObject);
+
         String expectedFinalStr = "<addresses><address><name/><nocontent/>"+
                 "<something>1</something><something>2</something><something>3</something>"+
                 "</address><xsi:noNamespaceSchemaLocation>test.xsd</xsi:noName"+
                 "spaceSchemaLocation><xmlns:xsi>http://www.w3.org/2001/XMLSche"+
                 "ma-instance</xmlns:xsi></addresses>";
-        assertTrue("Should handle expectedFinal: ["+expectedStr+"] final: ["+
-                finalStr+"]", expectedFinalStr.equals(finalStr));
+
+        compareStringToJSONObject(xmlStr, expectedStr);
+        compareReaderToJSONObject(xmlStr, expectedStr);
+        compareFileToJSONObject(xmlStr, expectedStr);
     }
 
     /**
@@ -391,17 +491,17 @@ public class XMLTest {
             "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":\"\","+
             "\"outer\":[[1], [2], [3]]},\"xsi:noNamespaceSchemaLocation\":\"test.xsd\",\""+
             "xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"}}";
-        JSONObject jsonObject = new JSONObject(xmlStr);
-        String finalStr = XML.toString(jsonObject);
-        JSONObject finalJsonObject = XML.toJSONObject(finalStr);
+
         String expectedStr = "<addresses><address><name/><nocontent/>"+
                 "<outer><array>1</array></outer><outer><array>2</array>"+
                 "</outer><outer><array>3</array></outer>"+
                 "</address><xsi:noNamespaceSchemaLocation>test.xsd</xsi:noName"+
                 "spaceSchemaLocation><xmlns:xsi>http://www.w3.org/2001/XMLSche"+
                 "ma-instance</xmlns:xsi></addresses>";
-        JSONObject expectedJsonObject = XML.toJSONObject(expectedStr);
-        Util.compareActualVsExpectedJsonObjects(finalJsonObject,expectedJsonObject);
+
+        compareStringToJSONObject(xmlStr, expectedStr);
+        compareReaderToJSONObject(xmlStr, expectedStr);
+        compareFileToJSONObject(xmlStr, expectedStr);
     }
 
 
@@ -466,9 +566,28 @@ public class XMLTest {
         assertTrue("1. empty tag2", "".equals(jsonObject.get("tag2")));
         assertTrue("1. content found", "if (a < b && a > 0) then return".equals(jsonObject.get("content")));
 
+        // Same tests, but for XML.toJSONObject(Reader)
+        JSONObject jsonObject = XML.toJSONObject(new StringReader(xmlStr));
+        assertTrue("1. 3 items", 3 == jsonObject.length());
+        assertTrue("1. empty tag1", "".equals(jsonObject.get("tag1")));
+        assertTrue("1. empty tag2", "".equals(jsonObject.get("tag2")));
+        assertTrue("1. content found", "if (a < b && a > 0) then return".equals(jsonObject.get("content")));
+
         // multiple consecutive standalone cdatas are accumulated into an array
         xmlStr = "<tag1></tag1><![CDATA[if (a < b && a > 0) then return]]><tag2></tag2><![CDATA[here is another cdata]]>";
         jsonObject = XML.toJSONObject(xmlStr);
+        assertTrue("2. 3 items", 3 == jsonObject.length());
+        assertTrue("2. empty tag1", "".equals(jsonObject.get("tag1")));
+        assertTrue("2. empty tag2", "".equals(jsonObject.get("tag2")));
+        assertTrue("2. content array found", jsonObject.get("content") instanceof JSONArray);
+        JSONArray jsonArray = jsonObject.getJSONArray("content");
+        assertTrue("2. array size", jsonArray.length() == 2);
+        assertTrue("2. content array entry 0", "if (a < b && a > 0) then return".equals(jsonArray.get(0)));
+        assertTrue("2. content array entry 1", "here is another cdata".equals(jsonArray.get(1)));
+
+
+        // Same thing, but for XML.toJSONObject(Reader)
+        jsonObject = XML.toJSONObject(new StringReader(xmlStr));
         assertTrue("2. 3 items", 3 == jsonObject.length());
         assertTrue("2. empty tag1", "".equals(jsonObject.get("tag1")));
         assertTrue("2. empty tag2", "".equals(jsonObject.get("tag2")));
@@ -488,6 +607,11 @@ public class XMLTest {
         assertTrue("3. 2 items", 1 == jsonObject.length());
         assertTrue("3. value tag1", "value 1".equals(jsonObject.get("tag1")));
 
+        // Same tests for XML.toJSONObject(Reader)
+        jsonObject = XML.toJSONObject(new StringReader(xmlStr));
+        assertTrue("3. 2 items", 1 == jsonObject.length());
+        assertTrue("3. value tag1", "value 1".equals(jsonObject.get("tag1")));
+
         /**
          * array-style text content (multiple tags with the same name) is 
          * accumulated in a local JSONObject with key="content" and value=JSONArray,
@@ -503,6 +627,15 @@ public class XMLTest {
         assertTrue("4. content array entry 1", jsonArray.getInt(1) == 2);
         assertTrue("4. content array entry 2", jsonArray.getBoolean(2) == true);
 
+        // XML.toJSONObject(Reader) tests
+        jsonObject = XML.toJSONObject(new StringReader(xmlStr));
+        assertTrue("4. 1 item", 1 == jsonObject.length());
+        assertTrue("4. content array found", jsonObject.get("tag1") instanceof JSONArray);
+        jsonArray = jsonObject.getJSONArray("tag1");
+        assertTrue("4. array size", jsonArray.length() == 3);
+        assertTrue("4. content array entry 0", "value 1".equals(jsonArray.get(0)));
+        assertTrue("4. content array entry 1", jsonArray.getInt(1) == 2);
+        assertTrue("4. content array entry 2", jsonArray.getBoolean(2) == true);
         /**
          * Complex content is accumulated in a "content" field. For example, an element
          * may contain a mix of child elements and text. Each text segment is 
@@ -510,6 +643,19 @@ public class XMLTest {
          */
         xmlStr =  "<tag1>val1<tag2/>val2</tag1>";
         jsonObject = XML.toJSONObject(xmlStr);
+        assertTrue("5. 1 item", 1 == jsonObject.length());
+        assertTrue("5. jsonObject found", jsonObject.get("tag1") instanceof JSONObject);
+        jsonObject = jsonObject.getJSONObject("tag1");
+        assertTrue("5. 2 contained items", 2 == jsonObject.length());
+        assertTrue("5. contained tag", "".equals(jsonObject.get("tag2")));
+        assertTrue("5. contained content jsonArray found", jsonObject.get("content") instanceof JSONArray);
+        jsonArray = jsonObject.getJSONArray("content");
+        assertTrue("5. array size", jsonArray.length() == 2);
+        assertTrue("5. content array entry 0", "val1".equals(jsonArray.get(0)));
+        assertTrue("5. content array entry 1", "val2".equals(jsonArray.get(1)));
+
+        // XML.toJSONObject(Reader) tests
+        jsonObject = XML.toJSONObject(new StringReader(xmlStr));
         assertTrue("5. 1 item", 1 == jsonObject.length());
         assertTrue("5. jsonObject found", jsonObject.get("tag1") instanceof JSONObject);
         jsonObject = jsonObject.getJSONObject("tag1");
@@ -533,6 +679,14 @@ public class XMLTest {
         assertTrue("6. contained content found", "val1".equals(jsonObject.get("content")));
         assertTrue("6. contained tag2", "".equals(jsonObject.get("tag2")));
 
+        // XML.toJSONObject(Reader) tests
+        jsonObject = XML.toJSONObject(new StringReader(xmlStr));
+        assertTrue("6. 1 item", 1 == jsonObject.length());
+        assertTrue("6. jsonObject found", jsonObject.get("tag1") instanceof JSONObject);
+        jsonObject = jsonObject.getJSONObject("tag1");
+        assertTrue("6. contained content found", "val1".equals(jsonObject.get("content")));
+        assertTrue("6. contained tag2", "".equals(jsonObject.get("tag2")));
+
         /**
          * In this corner case, the content sibling happens to have key=content
          * We end up with an array within an array, and no content element.
@@ -540,6 +694,19 @@ public class XMLTest {
          */
         xmlStr =  "<tag1>val1<content/></tag1>";
         jsonObject = XML.toJSONObject(xmlStr);
+        assertTrue("7. 1 item", 1 == jsonObject.length());
+        assertTrue("7. jsonArray found", jsonObject.get("tag1") instanceof JSONArray);
+        jsonArray = jsonObject.getJSONArray("tag1");
+        assertTrue("array size 1", jsonArray.length() == 1);
+        assertTrue("7. contained array found", jsonArray.get(0) instanceof JSONArray);
+        jsonArray = jsonArray.getJSONArray(0);
+        assertTrue("7. inner array size 2", jsonArray.length() == 2);
+        assertTrue("7. inner array item 0", "val1".equals(jsonArray.get(0)));
+        assertTrue("7. inner array item 1", "".equals(jsonArray.get(1)));
+
+
+        // Same tests for XML.toJSONObject(Reader)
+        jsonObject = XML.toJSONObject(new StringReader(xmlStr));
         assertTrue("7. 1 item", 1 == jsonObject.length());
         assertTrue("7. jsonArray found", jsonObject.get("tag1") instanceof JSONArray);
         jsonArray = jsonObject.getJSONArray("tag1");
@@ -595,7 +762,7 @@ public class XMLTest {
 
     /**
      * Convenience method, given an input string and expected result,
-     * convert to JSONBObject and compare actual to expected result.
+     * convert to JSONObject and compare actual to expected result.
      * @param xmlStr the string to parse
      * @param expectedStr the expected JSON string
      */
@@ -607,7 +774,7 @@ public class XMLTest {
 
     /**
      * Convenience method, given an input string and expected result,
-     * convert to JSONBObject via reader and compare actual to expected result.
+     * convert to JSONObject via reader and compare actual to expected result.
      * @param xmlStr the string to parse
      * @param expectedStr the expected JSON string
      */
@@ -620,7 +787,7 @@ public class XMLTest {
 
     /**
      * Convenience method, given an input string and expected result,
-     * convert to JSONBObject via file and compare actual to expected result.
+     * convert to JSONObject via file and compare actual to expected result.
      * @param xmlStr the string to parse
      * @param expectedStr the expected JSON string
      * @throws IOException 
