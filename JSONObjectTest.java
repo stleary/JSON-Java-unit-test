@@ -1,15 +1,32 @@
 package org.json.junit;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import org.json.*;
-import org.junit.*;
+import org.json.CDL;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONString;
+import org.json.XML;
+import org.junit.Test;
 
 /**
  * Used in testing when a JSONString is needed
@@ -452,24 +469,19 @@ public class JSONObjectTest {
                 JSONObject.stringToValue( "0.2" ) instanceof Double );
         assertTrue( "Doubles should be Doubles, even when incorrectly converting floats!",
                 JSONObject.stringToValue( new Double( "0.2f" ).toString() ) instanceof Double );
-        /**
-         * This test documents a need for BigDecimal conversion.
-         */
-        Object obj = JSONObject.stringToValue( "299792.457999999984" );
-        assertTrue( "evaluates to 299792.458 doubld instead of 299792.457999999984 BigDecimal!",
-                 obj.equals(new Double(299792.458)) );
+        assertTrue( "299792.457999999984 should be a Double!",
+        	JSONObject.stringToValue( "299792.457999999984" ) instanceof Double );
         assertTrue( "1 should be an Integer!",
-                JSONObject.stringToValue( "1" ) instanceof Integer );
+        	JSONObject.stringToValue( "1" ) instanceof Integer );
         assertTrue( "Integer.MAX_VALUE should still be an Integer!",
-                JSONObject.stringToValue( new Integer( Integer.MAX_VALUE ).toString() ) instanceof Integer );
+        	JSONObject.stringToValue( new Integer( Integer.MAX_VALUE ).toString() ) instanceof Integer );
         assertTrue( "Large integers should be a Long!",
-                JSONObject.stringToValue( new Long( Long.sum( Integer.MAX_VALUE, 1 ) ).toString() ) instanceof Long );
-        assertTrue( "Long.MAX_VALUE should still be an Integer!",
-                JSONObject.stringToValue( new Long( Long.MAX_VALUE ).toString() ) instanceof Long );
-
+        	JSONObject.stringToValue( new Long( Long.sum( Integer.MAX_VALUE, 1 ) ).toString() ) instanceof Long );
+        assertTrue( "Long.MAX_VALUE should still be a Long!",
+        	JSONObject.stringToValue( new Long( Long.MAX_VALUE ).toString() ) instanceof Long );
         String str = new BigInteger( new Long( Long.MAX_VALUE ).toString() ).add( BigInteger.ONE ).toString();
-        assertTrue( "Really large integers currently evaluate to string",
-                JSONObject.stringToValue(str).equals("9223372036854775808"));
+        assertTrue( "Really large integers Should be BigInteger",
+                JSONObject.stringToValue(str) instanceof BigInteger);
     }
 
     /**
@@ -492,14 +504,14 @@ public class JSONObjectTest {
         assertTrue( "numberWithDecimals currently evaluates to double 299792.458",
                 jsonObject.get( "numberWithDecimals" ).equals( new Double( "299792.458" ) ) );
         Object obj = jsonObject.get( "largeNumber" );
-        assertTrue("largeNumber currently evaluates to string",
-                "12345678901234567890".equals(obj));
+        assertTrue("largeNumbers should evaluate to BigInteger",
+                obj instanceof BigInteger);
         // comes back as a double but loses precision
         assertTrue( "preciseNumber currently evaluates to double 0.2",
                 jsonObject.get( "preciseNumber" ).equals(new Double(0.2)));
         obj = jsonObject.get( "largeExponent" );
-        assertTrue("largeExponent should currently evaluates as a string",
-                "-23.45e2327".equals(obj));
+        assertTrue("largeExponent should evaluate as a BigDecimal",
+                obj instanceof BigDecimal);
     }
 
     /**
@@ -791,8 +803,8 @@ public class JSONObjectTest {
          * might inconvenience users.
          */
         obj = JSONObject.stringToValue(bigInteger.toString());
-        assertTrue("stringToValue() turns bigInteger string into string",
-                obj instanceof String);
+        assertTrue("stringToValue() turns keeps bigInteger as BigInteger",
+                obj instanceof BigInteger);
         obj = JSONObject.stringToValue(bigDecimal.toString());
         assertTrue("stringToValue() changes bigDecimal string",
                 !obj.toString().equals(bigDecimal.toString()));
@@ -1319,7 +1331,7 @@ public class JSONObjectTest {
         String jsonArrayStr = 
             "[1,2,3]";
         JSONArray jsonArray = new JSONArray(jsonArrayStr);
-        assertTrue("jsonArra valueToString() incorrect",
+        assertTrue("jsonArray valueToString() incorrect",
                 JSONObject.valueToString(jsonArray).equals(jsonArray.toString()));
         Map<String, String> map = new HashMap<String, String>();
         map.put("key1", "val1");
@@ -1645,18 +1657,20 @@ public class JSONObjectTest {
 
     /**
      * Exercise the JSONObject write() method
+     * @throws IOException 
      */
     @Test
-    public void write() {
+    public void write() throws IOException {
         String str = "{\"key\":\"value\"}";
         String expectedStr = str;
         JSONObject jsonObject = new JSONObject(str);
-        StringWriter stringWriter = new StringWriter();
-        Writer writer = jsonObject.write(stringWriter);
-        String actualStr = writer.toString();
-        assertTrue("write() expected " +expectedStr+
-                "but found " +actualStr,
-                expectedStr.equals(actualStr));
+        try(StringWriter stringWriter = new StringWriter();
+            Writer writer = jsonObject.write(stringWriter);){
+            String actualStr = writer.toString();
+            assertTrue("write() expected " +expectedStr+
+                    "but found " +actualStr,
+                    expectedStr.equals(actualStr));
+        }
     }
 
     /**
