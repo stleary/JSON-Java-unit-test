@@ -1,10 +1,14 @@
 package org.json.junit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
-import org.json.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * These are helpful utility methods that perform basic comparisons
@@ -54,7 +58,6 @@ public class Util {
      * or something else.
      * @param value created by the code to be tested
      * @param expectedValue created specifically for comparing
-     * @param key key to the jsonObject entry to be compared
      */
     private static void compareActualVsExpectedObjects(Object value,
             Object expectedValue) {
