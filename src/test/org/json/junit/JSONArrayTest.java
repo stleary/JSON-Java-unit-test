@@ -1,5 +1,6 @@
 package org.json.junit;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.*;
@@ -685,5 +686,25 @@ public class JSONArrayTest {
         assertTrue("Array value string long",
                 new Long(-1).equals(Long.parseLong((String) it.next())));
         assertTrue("should be at end of array", !it.hasNext());
+    }
+
+    /**
+     * Exercise the JSONArray equals() method
+     */
+    @Test
+    public void equals() {
+        String str = "[1,2,3]";
+        JSONArray aJsonArray = new JSONArray(str);
+        assertTrue("Same JSONArray should be equal to itself",
+                aJsonArray.equals(aJsonArray));
+
+        assertFalse("JSONArray should not be equal to null",
+                new JSONArray().equals(null));
+        assertFalse("JSONArray should not be equal to a class not of type JSONArray",
+                new JSONArray().equals("not a JSONArray"));
+        assertTrue("Two empty JSONArrays should be equal",
+                new JSONArray().equals(new JSONArray()));
+        assertTrue("Two JSONArrays with the same content should be equal",
+                new JSONArray(str).equals(new JSONArray(str)));
     }
 }

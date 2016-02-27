@@ -1814,6 +1814,15 @@ public class JSONObjectTest {
         JSONObject aJsonObject = new JSONObject(str);
         assertTrue("Same JSONObject should be equal to itself",
                 aJsonObject.equals(aJsonObject));
+
+        assertFalse("JSONObject should not be equal to null",
+                new JSONObject().equals(null));
+        assertFalse("JSONObject should not be equal to a class not of type JSONObject",
+                new JSONObject().equals("not a JSONObject"));
+        assertTrue("Two empty JSONObjects should be equal",
+                new JSONObject().equals(new JSONObject()));
+        assertTrue("Two JSONObjects with the same content should be equal",
+                new JSONObject(str).equals(new JSONObject(str)));
     }
 
     /**
