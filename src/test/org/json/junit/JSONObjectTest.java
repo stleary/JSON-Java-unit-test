@@ -340,6 +340,27 @@ public class JSONObjectTest {
     }
 
     /**
+     * JSONObject built from a nested bean. Establish and document the behavior when
+     * a bean-style class which contains another bean-style nested class is
+     * serialized. 
+     */
+    @Test
+    public void jsonObjectByNestedBean() {
+        MyNestedClass myNestedClass = new MyNestedClass("nested", 123);
+        MyNestingClass myNestingClass = new MyNestingClass("nesting", myNestedClass);
+        JSONObject jsonObject = new JSONObject(myNestingClass);
+        String str = jsonObject.toString();
+
+        // validate JSON
+        Object doc = Configuration.defaultConfiguration().jsonProvider().parse(jsonObject.toString());
+        assertTrue("expected 2 top level items", ((Map<?,?>)(JsonPath.read(doc, "$"))).size() == 2);
+        assertTrue("expected nesting", "nesting".equals(JsonPath.read(doc, "$.str")));
+        assertTrue("expected 2 nested items", ((Map<?,?>)(JsonPath.read(doc, "$.myNestedClass"))).size() == 2);
+        assertTrue("expected nestedStr", "nested".equals(JsonPath.read(doc, "$.myNestedClass.nestedStr")));
+        assertTrue("expected 123", Integer.valueOf("123").equals(JsonPath.read(doc, "$.myNestedClass.nestedInt")));
+    }
+
+    /**
      * Exercise the JSONObject from resource bundle functionality.
      * The test resource bundle is uncomplicated, but provides adequate test coverage.
      */
