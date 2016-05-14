@@ -1,5 +1,6 @@
 package org.json.junit;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -1814,6 +1815,38 @@ public class JSONObjectTest {
         JSONObject aJsonObject = new JSONObject(str);
         assertTrue("Same JSONObject should be equal to itself",
                 aJsonObject.equals(aJsonObject));
+    }
+
+    /**
+     * Exercise the JSONObject toMap() method
+     */
+    @Test
+    public void toMap() {
+        assertEquals("empty JSONObjects should return 0 length maps",
+                0, new JSONObject().toMap().size());
+
+        String str = "{" +
+                "\"nullKey\":null," +
+                "\"stringKey\":\"hello world!\"," +
+                "\"arrayKey\":[1, 2, 3]," +
+                "\"objectKey\":{\"subKey\": \"subValue\"}" +
+                "}";
+        JSONObject jsonObject = new JSONObject(str);
+        Map<String, Object> jsonObjectAsMap = jsonObject.toMap();
+        assertEquals("JSONObject and maps should contains the same number of entries",
+                jsonObject.length(), jsonObjectAsMap.size());
+        assertEquals("nulls should remain null",
+                null, jsonObjectAsMap.get("nullKey"));
+        assertEquals("strings should remain strings",
+                "hello world!", jsonObjectAsMap.get("stringKey"));
+        assertEquals("arrays should be converted to lists of same size",
+                3, ((List) jsonObjectAsMap.get("arrayKey")).size());
+        assertEquals("arrays should be converted to lists with same content",
+                1, ((List) jsonObjectAsMap.get("arrayKey")).get(0));
+        assertEquals("objects should be converted to maps of same size",
+                1, ((Map) jsonObjectAsMap.get("objectKey")).size());
+        assertEquals("objects should be converted to maps with same content",
+                "subValue", ((Map) jsonObjectAsMap.get("objectKey")).get("subKey"));
     }
 
     /**

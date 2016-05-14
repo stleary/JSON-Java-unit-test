@@ -1,5 +1,6 @@
 package org.json.junit;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.*;
@@ -685,5 +686,40 @@ public class JSONArrayTest {
         assertTrue("Array value string long",
                 new Long(-1).equals(Long.parseLong((String) it.next())));
         assertTrue("should be at end of array", !it.hasNext());
+    }
+
+    /**
+     * Exercise toList.
+     */
+    @Test
+    public void toList() {
+        assertEquals("zero length array should return zero length list",
+                0, new JSONArray().toList().size());
+
+        JSONArray jsonArray = new JSONArray(arrayStr);
+        List<Object> jsonArrayAsList = jsonArray.toList();
+        assertEquals("lengths should be equals",
+                jsonArray.length(), jsonArrayAsList.size());
+        assertEquals("booleans should remain booleans",
+                true, jsonArrayAsList.get(0));
+        assertEquals("strings should remain strings",
+                "hello", jsonArrayAsList.get(4));
+        assertTrue("arrays should be converted to lists",
+                List.class.isAssignableFrom(jsonArrayAsList.get(9).getClass()));
+        assertEquals("arrays should be converted to lists with the same size",
+                1, ((List) jsonArrayAsList.get(9)).size());
+        assertEquals("arrays should be converted to lists with the same values",
+                "world", ((List) jsonArrayAsList.get(9)).get(0));
+        assertTrue("JSONObjects should be converted to maps",
+                Map.class.isAssignableFrom(jsonArrayAsList.get(10).getClass()));
+        assertEquals("JSONObjects should be converted to maps with the same size",
+                4, ((Map) jsonArrayAsList.get(10)).size());
+        assertTrue("JSONObjects should be converted to maps with the same keys",
+                ((Map) jsonArrayAsList.get(10)).containsKey("key1"));
+
+        jsonArray = new JSONArray("[null]");
+        jsonArrayAsList = jsonArray.toList();
+        assertEquals("toList should keep nulls as nulls",
+                null, jsonArrayAsList.get(0));
     }
 }
