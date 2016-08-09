@@ -1714,7 +1714,7 @@ public class JSONObjectTest {
     }
 
     /**
-     * Exercise JSONObject opt(key, default) method
+     * Exercise JSONObject opt(key, default) method, when type can't be converted
      */
     @Test
     public void jsonObjectOptDefault() {
@@ -1722,20 +1722,41 @@ public class JSONObjectTest {
         String str = "{\"myKey\": \"myval\"}";
         JSONObject jsonObject = new JSONObject(str);
 
-        assertTrue("optBoolean() should return default boolean",
+        assertTrue("optBoolean() should return default boolean when type doesn't match",
                 Boolean.TRUE == jsonObject.optBoolean("myKey", Boolean.TRUE));
-        assertTrue("optInt() should return default int",
+        assertTrue("optInt() should return default int when type doesn't match",
                 42 == jsonObject.optInt("myKey", 42));
-        assertTrue("optInt() should return default int",
+        assertTrue("optInt() should return default int when type doesn't match",
                 42 == jsonObject.optInt("myKey", 42));
-        assertTrue("optLong() should return default long",
+        assertTrue("optLong() should return default long when type doesn't match",
                 42 == jsonObject.optLong("myKey", 42));
-        assertTrue("optDouble() should return default double",
+        assertTrue("optDouble() should return default double when type doesn't match",
                 42.3 == jsonObject.optDouble("myKey", 42.3));
+    }
+
+    /**
+     * Exercise JSONObject opt(key, default) method with missing values
+     */
+    @Test
+    public void jsonObjectOptMissing() {
+
+        String str = "{\"myKey\": \"myval\"}";
+        JSONObject jsonObject = new JSONObject(str);
+
+        assertTrue("optBoolean() should return default boolean",
+                Boolean.TRUE == jsonObject.optBoolean("hiKey", Boolean.TRUE));
+        assertTrue("optInt() should return default int",
+                42 == jsonObject.optInt("hiKey", 42));
+        assertTrue("optInt() should return default int",
+                42 == jsonObject.optInt("hiKey", 42));
+        assertTrue("optLong() should return default long",
+                42 == jsonObject.optLong("hiKey", 42));
+        assertTrue("optDouble() should return default double",
+                42.3 == jsonObject.optDouble("hiKey", 42.3));
         assertTrue("optString() should return default string",
                 "hi".equals(jsonObject.optString("hiKey", "hi")));
     }
-    
+
     /**
      * Verifies that the opt methods properly convert string values.
      */
