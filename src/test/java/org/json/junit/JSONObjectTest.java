@@ -174,23 +174,24 @@ public class JSONObjectTest {
         JSONObject jsonObject = new JSONObject(new MyNumberContainer());
         String actual = jsonObject.toString();
         
-        // before wrapping of Number is allowed the number was converted as a bean
-        String expected = "{\"myNumber\":{\"number\":42}}";
-        //String expected = "{\"myNumber\":42}";
+        // before wrapping of Number was allowed the number was converted as a bean
+        //String expected = "{\"myNumber\":{\"number\":42}}";
+        String expected = "{\"myNumber\":42}";
         assertEquals("Not Equal", expected , actual);
         
         // put handles objects differently than the constructor.
         jsonObject = new JSONObject();
         jsonObject.put("myNumber", new MyNumber());
         actual = jsonObject.toString();
-        // the output is the toString of the number as a string.
-        expected = "{\"myNumber\":\"42\"}";
+        // the output is the toString of the number as a number.
+        expected = "{\"myNumber\":42}";
         assertEquals("Not Equal", expected , actual);
         
         jsonObject = new JSONObject(Collections.singletonMap("myNumber", new AtomicInteger(42)));
         actual = jsonObject.toString();
-        // before wrapping of Number is allowed the number was converted to a string
-        expected = "{\"myNumber\":\"42\"}";
+        // before wrapping of Number was allowed the number was converted to a string
+        //expected = "{\"myNumber\":\"42\"}";
+        expected = "{\"myNumber\":42}";
         assertEquals("Not Equal", expected , actual);
         
         // put handles objects differently than the constructor.
@@ -203,13 +204,13 @@ public class JSONObjectTest {
         // verify Fraction output
         jsonObject = new JSONObject(Collections.singletonMap("myNumber", new Fraction(4,2)));
         actual = jsonObject.toString();
-        expected = "{\"myNumber\":{\"denominator\":2,\"numerator\":4}}";
+        expected = "{\"myNumber\":\"4/2\"}";
         assertEquals("Not Equal", expected , actual);
                
         jsonObject = new JSONObject();
         jsonObject.put("myNumber", new Fraction(4,2));
         actual = jsonObject.toString();
-        expected = "{\"myNumber\":4/2}"; // this is NOT valid JSON!!!!!!!!!!! BUG!
+        expected = "{\"myNumber\":\"4/2\"}"; // valid JSON, bug fixed
         assertEquals("Not Equal", expected , actual);
     }
 
