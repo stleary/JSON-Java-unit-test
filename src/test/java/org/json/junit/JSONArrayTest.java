@@ -3,6 +3,7 @@ package org.json.junit;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import java.io.StringWriter;
 import java.io.Writer;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -971,5 +973,52 @@ public class JSONArrayTest {
         // assert that the new list is mutable
         assertTrue("Removing an entry should succeed", list.remove(2) != null);
         assertTrue("List should have 2 elements", list.size() == 2);
+    }
+
+    @Test
+    public void equality() {
+        assertEquals("empty arrays should be equal",
+                new JSONArray("[]"),
+                new JSONArray("[]"));
+        assertEquals("arrays of the equal elements should be equal",
+                new JSONArray("[null,false,true,0,5.7,\"hello\",[],[1,2],{},{\"a\":\"b\"}]"),
+                new JSONArray("[null,false,true,0,5.7,\"hello\",[],[1,2],{},{\"a\":\"b\"}]"));
+        assertNotEquals("arrays of different length should not be equal",
+                new JSONArray("[]"),
+                new JSONArray("[1]"));
+        assertNotEquals("arrays of different numbers should not be equal",
+                new JSONArray("[1]"),
+                new JSONArray("[2]"));
+        assertNotEquals("arrays of different strings should not be equal",
+                new JSONArray("[\"a\"]"),
+                new JSONArray("[\"b\"]"));
+        assertNotEquals("arrays of different arrays should not be equal",
+                new JSONArray("[[true]]"),
+                new JSONArray("[[false]]"));
+        assertNotEquals("arrays of different objects should not be equal",
+                new JSONArray("[{\"a\":\"b\"}]"),
+                new JSONArray("[{\"a\":\"c\"}]"));
+    }
+
+    @Test
+    public void hashing() {
+        {
+            HashSet set = new HashSet();
+            set.add(new JSONArray("[]"));
+            set.add(new JSONArray("[]"));
+            assertEquals("two empty arrays should collapse into single set entry", 1, set.size());
+        }
+        {
+            HashSet set = new HashSet();
+            set.add(new JSONArray("[null,false,true,0,5.7,\"hello\",[],[1,2],{},{\"a\":\"b\"}]"));
+            set.add(new JSONArray("[null,false,true,0,5.7,\"hello\",[],[1,2],{},{\"a\":\"b\"}]"));
+            assertEquals("two equal arrays should collapse into single set entry", 1, set.size());
+        }
+        {
+            HashSet set = new HashSet();
+            set.add(new JSONArray("[null,1,2,3]"));
+            set.add(new JSONArray("[null,1,2,4]"));
+            assertEquals("two different arrays should be stored in separate set entries", 2, set.size());
+        }
     }
 }

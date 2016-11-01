@@ -2,6 +2,7 @@ package org.json.junit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -2315,5 +2317,55 @@ public class JSONObjectTest {
         assertTrue("Removing a key should succeed", map.remove("key3") != null);
         assertTrue("Map should have 2 elements", map.size() == 2);
 
+    }
+
+    @Test
+    public void equality() {
+        assertEquals("empty objects should be equal",
+                new JSONObject("{}"),
+                new JSONObject("{}"));
+        assertEquals("objects of the equal elements should be equal",
+                new JSONObject("{\"a\":null,\"b\":5,\"c\":\"val\",\"d\":[1],\"e\":{\"x\":\"y\"}}"),
+                new JSONObject("{\"a\":null,\"b\":5,\"c\":\"val\",\"d\":[1],\"e\":{\"x\":\"y\"}}"));
+        assertNotEquals("objects of different length should not be equal",
+                new JSONObject("{}"),
+                new JSONObject("{\"a\":\"b\"}"));
+        assertNotEquals("objects with different key sets should not be equal",
+                new JSONObject("{\"a\":1}"),
+                new JSONObject("{\"b\":1}"));
+        assertNotEquals("objects with different numeric values should not be equal",
+                new JSONObject("{\"a\":1}"),
+                new JSONObject("{\"a\":2}"));
+        assertNotEquals("objects with different string values should not be equal",
+                new JSONObject("{\"a\":\"b\"}"),
+                new JSONObject("{\"a\":\"c\"}"));
+        assertNotEquals("objects with different array values should not be equal",
+                new JSONObject("{\"a\":[1,2,3]}"),
+                new JSONObject("{\"a\":[1,2,4]}"));
+        assertNotEquals("objects with different object values should not be equal",
+                new JSONObject("{\"a\":{\"b\":\"c\"}}"),
+                new JSONObject("{\"a\":{\"b\":\"d\"}}"));
+    }
+
+    @Test
+    public void hashing() {
+        {
+            HashSet set = new HashSet();
+            set.add(new JSONObject("{}"));
+            set.add(new JSONObject("{}"));
+            assertEquals("two empty objects should collapse into single set entry", 1, set.size());
+        }
+        {
+            HashSet set = new HashSet();
+            set.add(new JSONObject("{\"a\":null,\"b\":5,\"c\":\"val\",\"d\":[1],\"e\":{}}"));
+            set.add(new JSONObject("{\"a\":null,\"b\":5,\"c\":\"val\",\"d\":[1],\"e\":{}}"));
+            assertEquals("two equal objects should collapse into single set entry", 1, set.size());
+        }
+        {
+            HashSet set = new HashSet();
+            set.add(new JSONObject("{\"a\":null,\"b\":5}"));
+            set.add(new JSONObject("{\"a\":null,\"b\":7}"));
+            assertEquals("two different objects should be stored in separate set entries", 2, set.size());
+        }
     }
 }
