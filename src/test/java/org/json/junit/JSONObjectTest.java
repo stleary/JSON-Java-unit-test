@@ -2214,7 +2214,7 @@ public class JSONObjectTest {
          */
         String sJONull = XML.toString(jsonObjectJONull);
         assertTrue("JSONObject.NULL should emit a null value", 
-                "<key>null</key>".equals(sJONull));
+                "<key/>".equals(sJONull));
         String sNull = XML.toString(jsonObjectNull);
         assertTrue("null should emit an empty string", "".equals(sNull));
     }
