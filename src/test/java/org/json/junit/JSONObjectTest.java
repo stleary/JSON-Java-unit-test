@@ -152,6 +152,7 @@ public class JSONObjectTest {
         map.put("escapeStringKey", "h\be\tllo w\u1234orld!");
         map.put("intKey", new Long(42));
         map.put("doubleKey", new Double(-23.45e67));
+        map.put("nullKey", null);	// https://github.com/stleary/JSON-java/issues/296 ... this key must not appear at all in the JSONObject
         JSONObject jsonObject = new JSONObject(map);
 
         // validate JSON
@@ -163,7 +164,69 @@ public class JSONObjectTest {
         assertTrue("expected \"escapeStringKey\":\"h\be\tllo w\u1234orld!\"", "h\be\tllo w\u1234orld!".equals(jsonObject.query("/escapeStringKey")));
         assertTrue("expected \"doubleKey\":-23.45e67", Double.valueOf("-23.45e67").equals(jsonObject.query("/doubleKey")));
     }
+    
+    @Test
+    public void jsonObjectByMapWithAlternativeNullHandling() {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("nullKey", null);	
+        JSONObject jsonObject = new JSONObject(map, true);     // https://github.com/stleary/JSON-java/issues/296 ... this time we want Java null to be JSON.null
 
+        // validate JSON
+        Object doc = Configuration.defaultConfiguration().jsonProvider().parse(jsonObject.toString());
+        assertTrue("expected 1 top level item", ((Map<?,?>)(JsonPath.read(doc, "$"))).size() == 1);
+        assertTrue("expected \"nullKey\":null", jsonObject.has("nullKey") && JSONObject.NULL == jsonObject.get("nullKey"));    	
+    }
+    
+    @Test
+    public void jsonObjectByNestedMapWithAlternativeNullHandling() {
+        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> sub = new HashMap<String, Object>();
+        sub.put("nullKey", null);	
+        map.put("sub", sub);
+        JSONObject jsonObject = new JSONObject(map, true);     // https://github.com/stleary/JSON-java/issues/296 ... this time we want Java null to be JSON.null
+        JSONObject subObject = jsonObject.getJSONObject("sub");
+
+        // validate JSON
+        Object doc = Configuration.defaultConfiguration().jsonProvider().parse(subObject.toString());
+        assertTrue("expected 1 top level item", ((Map<?,?>)(JsonPath.read(doc, "$"))).size() == 1);
+        assertTrue("expected \"nullKey\":null", subObject.has("nullKey") && JSONObject.NULL == subObject.get("nullKey"));    	
+    }
+    
+    public static class TestBean {
+        private Map<String, Object> map = new HashMap<String, Object>();
+        public TestBean() {
+        	map.put("nullKey", null);
+		}
+        public Map<String, Object> getMap() {
+			return map;
+		}
+        public Object getOuterNull() {
+        	return null;
+        }
+    }
+    
+    @Test
+    public void jsonObjectByBeanWithAlternativeNullHandling() {
+    	TestBean bean = new TestBean();
+        JSONObject jsonObject = new JSONObject(bean, true);     // https://github.com/stleary/JSON-java/issues/296 ... this time we want Java null to be JSON.null
+
+        // validate JSON
+        Object doc = Configuration.defaultConfiguration().jsonProvider().parse(jsonObject.toString());
+        assertTrue("expected 1 top level item", ((Map<?,?>)(JsonPath.read(doc, "$"))).size() == 2);
+        assertTrue("expected \"outerNull\":null", jsonObject.has("outerNull") && JSONObject.NULL == jsonObject.get("outerNull"));    	
+        JSONObject inner = jsonObject.getJSONObject("map");
+        assertTrue("expected \"nullKey\":null in inner JSON object", inner.has("nullKey") && JSONObject.NULL == inner.get("nullKey"));
+        
+        // test also against wrap call
+        jsonObject = (JSONObject) JSONObject.wrap(bean, true);
+        doc = Configuration.defaultConfiguration().jsonProvider().parse(jsonObject.toString());
+        assertTrue("expected 1 top level item", ((Map<?,?>)(JsonPath.read(doc, "$"))).size() == 2);
+        assertTrue("expected \"outerNull\":null", jsonObject.has("outerNull") && JSONObject.NULL == jsonObject.get("outerNull"));    	
+        inner = jsonObject.getJSONObject("map");
+        assertTrue("expected \"nullKey\":null in inner JSON object", inner.has("nullKey") && JSONObject.NULL == inner.get("nullKey"));        
+    }
+    
+    
     /**
      * Verifies that the constructor has backwards compatability with RAW types pre-java5.
      */

@@ -984,4 +984,50 @@ public class JSONArrayTest {
         assertTrue("Removing an entry should succeed", list.remove(2) != null);
         assertTrue("List should have 2 elements", list.size() == 2);
     }
+        
+    @Test
+    public void jsonArrayByListWithNestedMapAndAlternativeNullHandling() {
+        List<Object> list = new ArrayList<Object>();
+        Map<String, Object> sub = new HashMap<String, Object>();
+        sub.put("nullKey", null);	
+        list.add(sub);
+        JSONArray jsonArray = new JSONArray(list, true);     // https://github.com/stleary/JSON-java/issues/296 ... this time we want Java null to be JSON.null
+        JSONObject subObject = jsonArray.getJSONObject(0);
+
+        // validate JSON
+        Object doc = Configuration.defaultConfiguration().jsonProvider().parse(subObject.toString());
+        assertTrue("expected 1 top level item", ((Map<?,?>)(JsonPath.read(doc, "$"))).size() == 1);
+        assertTrue("expected \"nullKey\":null", subObject.has("nullKey") && JSONObject.NULL == subObject.get("nullKey"));
+        
+        // test also against wrap call
+        jsonArray = (JSONArray) JSONObject.wrap(list, true);
+        subObject = jsonArray.getJSONObject(0);
+        doc = Configuration.defaultConfiguration().jsonProvider().parse(subObject.toString());
+        assertTrue("expected 1 top level item", ((Map<?,?>)(JsonPath.read(doc, "$"))).size() == 1);
+        assertTrue("expected \"nullKey\":null", subObject.has("nullKey") && JSONObject.NULL == subObject.get("nullKey"));
+    }
+    
+    @Test
+    public void jsonArrayByArrayWithNestedMapAndAlternativeNullHandling() {
+        Object[] array = new Object[1];
+        Map<String, Object> sub = new HashMap<String, Object>();
+        sub.put("nullKey", null);	
+        array[0] = sub;
+         JSONArray jsonArray = new JSONArray(array, true);     // https://github.com/stleary/JSON-java/issues/296 ... this time we want Java null to be JSON.null
+        JSONObject subObject = jsonArray.getJSONObject(0);
+
+        // validate JSON
+        Object doc = Configuration.defaultConfiguration().jsonProvider().parse(subObject.toString());
+        assertTrue("expected 1 top level item", ((Map<?,?>)(JsonPath.read(doc, "$"))).size() == 1);
+        assertTrue("expected \"nullKey\":null", subObject.has("nullKey") && JSONObject.NULL == subObject.get("nullKey"));
+        
+        // test also against wrap call
+        jsonArray = (JSONArray) JSONObject.wrap(array, true);
+        subObject = jsonArray.getJSONObject(0);
+        doc = Configuration.defaultConfiguration().jsonProvider().parse(subObject.toString());
+        assertTrue("expected 1 top level item", ((Map<?,?>)(JsonPath.read(doc, "$"))).size() == 1);
+        assertTrue("expected \"nullKey\":null", subObject.has("nullKey") && JSONObject.NULL == subObject.get("nullKey"));
+        
+    }    
+    
 }
