@@ -1,4 +1,4 @@
-package org.json.junit;
+package org.json.junit.data;
 
 import java.util.*;
 
@@ -6,6 +6,7 @@ import java.util.*;
  * A resource bundle class
  */
 public class StringsResourceBundle extends ListResourceBundle {
+    @Override
     public Object[][] getContents() {
         return contents;
     }

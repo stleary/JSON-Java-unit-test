@@ -1,14 +1,18 @@
 package org.json.junit;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.junit.data.MyEnum;
+import org.json.junit.data.MyEnumClass;
+import org.json.junit.data.MyEnumField;
 import org.junit.Test;
 
 import com.jayway.jsonpath.Configuration;
@@ -92,7 +96,7 @@ public class EnumTest {
         assertTrue("expected 3 top level items", ((Map<?,?>)(JsonPath.read(doc, "$"))).size() == 3);
         assertTrue("expected VAL1", MyEnumField.VAL1.equals(jsonObject.query("/VAL1")));
         assertTrue("expected VAL2", MyEnumField.VAL2.equals(jsonObject.query("/VAL2")));
-        assertTrue("expected VAL3", myEnumField.VAL3.equals(jsonObject.query("/VAL3")));
+        assertTrue("expected VAL3", MyEnumField.VAL3.equals(jsonObject.query("/VAL3")));
     }
     
     /**
@@ -194,7 +198,7 @@ public class EnumTest {
          * However, an enum within another class will not be rendered
          * unless that class overrides default toString() 
          */
-        String expectedStr3 = "\"org.json.junit.MyEnumClass@";
+        String expectedStr3 = "\"org.json.junit.data.MyEnumClass@";
         myEnumClass.setMyEnum(MyEnum.VAL1);
         myEnumClass.setMyEnumField(MyEnumField.VAL1);
         String str3 = JSONObject.valueToString(myEnumClass);
@@ -326,6 +330,7 @@ public class EnumTest {
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("strKey", "value");
+        jsonObject.put("strKey2", "VAL1");
         jsonObject.put("enumKey", myEnumField);
         jsonObject.put("enumClassKey", myEnumClass);
 
@@ -361,11 +366,18 @@ public class EnumTest {
 
         // opt with default the wrong value
         actualEnum = jsonObject.optEnum(MyEnumField.class, "strKey", null);
-        assertTrue("opt null", actualEnum == null);
+        assertNull("opt null", actualEnum);
+
+        // opt with default the string value
+        actualEnum = jsonObject.optEnum(MyEnumField.class, "strKey2", null);
+        assertEquals(MyEnumField.VAL1, actualEnum);
 
         // opt with default an index that does not exist
         actualEnum = jsonObject.optEnum(MyEnumField.class, "noKey", null);
-        assertTrue("opt null", actualEnum == null);
+        assertNull("opt null", actualEnum);
+        
+        assertNull("Expected Null when the enum class is null",
+                jsonObject.optEnum(null, "enumKey"));
 
         /**
          * Exercise the proposed enum API methods on JSONArray
