@@ -38,8 +38,8 @@ public class Util {
      */
     public static void compareActualVsExpectedJsonObjects(
             JSONObject jsonObject, JSONObject expectedJsonObject) {
-        assertTrue("jsonObjects should have the same length",
-                jsonObject.length() == expectedJsonObject.length());
+        assertEquals("jsonObjects should have the same length",
+                expectedJsonObject.length(), jsonObject.length());
         Iterator<String> keys = jsonObject.keys();
         while (keys.hasNext()) {
             String key = keys.next();

@@ -474,7 +474,8 @@ public class JSONMLTest {
                     "<NothingHere except=\"an attribute\"/>\n"+
                     "<TrueValue>true</TrueValue>\n"+
                     "<FalseValue>false</FalseValue>\n"+
-                    "<NullValue>null</NullValue>\n"+
+                    "<NullValue/>\n"+
+                    "<EmptyValue></EmptyValue>\n"+
                     "<PositiveValue>42</PositiveValue>\n"+
                     "<NegativeValue>-23</NegativeValue>\n"+
                     "<DoubleValue>-23.45</DoubleValue>\n"+
@@ -518,8 +519,10 @@ public class JSONMLTest {
                                 "\"tagName\":\"FalseValue\""+
                             "},"+
                             "{"+
-                                "\"childNodes\":[null],"+
                                 "\"tagName\":\"NullValue\""+
+                            "},"+
+                            "{"+
+                                "\"tagName\":\"EmptyValue\""+
                             "},"+
                             "{"+
                                 "\"childNodes\":[42],"+
@@ -607,7 +610,8 @@ public class JSONMLTest {
                     "],"+
                     "[\"TrueValue\",true],"+
                     "[\"FalseValue\",false],"+
-                    "[\"NullValue\",null],"+
+                    "[\"NullValue\"],"+
+                    "[\"EmptyValue\"],"+
                     "[\"PositiveValue\",42],"+
                     "[\"NegativeValue\",-23],"+
                     "[\"DoubleValue\",-23.45],"+

@@ -218,7 +218,7 @@ public class XMLTest {
             "   </address>\n"+
             "</addresses>";
         String expectedStr = 
-            "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":\"\",\""+
+            "{\"addresses\":{\"address\":{\"name\":null,\"nocontent\":null,\""+
             "content\":\">\"},\"xsi:noNamespaceSchemaLocation\":\"test.xsd\",\""+
             "xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"}}";
         JSONObject jsonObject = XML.toJSONObject(xmlStr);
@@ -245,6 +245,7 @@ public class XMLTest {
             "       <PositiveValue>42</PositiveValue>\n"+
             "       <NegativeValue>-23</NegativeValue>\n"+
             "       <DoubleValue>-23.45</DoubleValue>\n"+
+            "       <EmptyStringValue></EmptyStringValue>\n"+
             "       <Nan>-23x.45</Nan>\n"+
             "       <ArrayOfNum>1, 2, 3, 4.1, 5.2</ArrayOfNum>\n"+
             "   </address>\n"+
@@ -252,9 +253,9 @@ public class XMLTest {
 
         String expectedStr = 
             "{\"addresses\":{\"address\":{\"street\":\"[CDATA[Baker street 5]\","+
-            "\"name\":\"Joe Tester\",\"NothingHere\":\"\",TrueValue:true,\n"+
-            "\"FalseValue\":false,\"NullValue\":null,\"PositiveValue\":42,\n"+
-            "\"NegativeValue\":-23,\"DoubleValue\":-23.45,\"Nan\":-23x.45,\n"+
+            "\"name\":\"Joe Tester\",\"NothingHere\":null,TrueValue:true,\n"+
+            "\"FalseValue\":false,\"NullValue\":\"null\",\"PositiveValue\":42,\n"+
+            "\"NegativeValue\":-23,\"DoubleValue\":-23.45,\"EmptyStringValue\":\"\",\"Nan\":-23x.45,\n"+
             "\"ArrayOfNum\":\"1, 2, 3, 4.1, 5.2\"\n"+
             "},\"xsi:noNamespaceSchemaLocation\":"+
             "\"test.xsd\",\"xmlns:xsi\":\"http://www.w3.org/2001/"+
@@ -330,12 +331,12 @@ public class XMLTest {
     @Test
     public void shouldHandleContentNoArraytoString() {
         String expectedStr = 
-            "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":\"\",\""+
+            "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":null,\""+
             "content\":\">\"},\"xsi:noNamespaceSchemaLocation\":\"test.xsd\",\""+
             "xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"}}";
         JSONObject expectedJsonObject = new JSONObject(expectedStr);
         String finalStr = XML.toString(expectedJsonObject);
-        String expectedFinalStr = "<addresses><address><name/><nocontent/>&gt;"+
+        String expectedFinalStr = "<addresses><address><name></name><nocontent/>&gt;"+
                 "</address><xsi:noNamespaceSchemaLocation>test.xsd</xsi:noName"+
                 "spaceSchemaLocation><xmlns:xsi>http://www.w3.org/2001/XMLSche"+
                 "ma-instance</xmlns:xsi></addresses>";
@@ -351,12 +352,12 @@ public class XMLTest {
     @Test
     public void shouldHandleContentArraytoString() {
         String expectedStr = 
-            "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":\"\",\""+
+            "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":null,\""+
             "content\":[1, 2, 3]},\"xsi:noNamespaceSchemaLocation\":\"test.xsd\",\""+
             "xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"}}";
         JSONObject expectedJsonObject = new JSONObject(expectedStr);
         String finalStr = XML.toString(expectedJsonObject);
-        String expectedFinalStr = "<addresses><address><name/><nocontent/>"+
+        String expectedFinalStr = "<addresses><address><name></name><nocontent/>"+
                 "1\n2\n3"+
                 "</address><xsi:noNamespaceSchemaLocation>test.xsd</xsi:noName"+
                 "spaceSchemaLocation><xmlns:xsi>http://www.w3.org/2001/XMLSche"+
@@ -372,12 +373,12 @@ public class XMLTest {
     @Test
     public void shouldHandleArraytoString() {
         String expectedStr = 
-            "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":\"\","+
+            "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":null,"+
             "\"something\":[1, 2, 3]},\"xsi:noNamespaceSchemaLocation\":\"test.xsd\",\""+
             "xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"}}";
         JSONObject expectedJsonObject = new JSONObject(expectedStr);
         String finalStr = XML.toString(expectedJsonObject);
-        String expectedFinalStr = "<addresses><address><name/><nocontent/>"+
+        String expectedFinalStr = "<addresses><address><name></name><nocontent/>"+
                 "<something>1</something><something>2</something><something>3</something>"+
                 "</address><xsi:noNamespaceSchemaLocation>test.xsd</xsi:noName"+
                 "spaceSchemaLocation><xmlns:xsi>http://www.w3.org/2001/XMLSche"+
@@ -461,13 +462,13 @@ public class XMLTest {
     @Test
     public void shouldHandleNestedArraytoString() {
         String xmlStr = 
-            "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":\"\","+
+            "{\"addresses\":{\"address\":{\"name\":\"\",\"nocontent\":null,"+
             "\"outer\":[[1], [2], [3]]},\"xsi:noNamespaceSchemaLocation\":\"test.xsd\",\""+
             "xmlns:xsi\":\"http://www.w3.org/2001/XMLSchema-instance\"}}";
         JSONObject jsonObject = new JSONObject(xmlStr);
         String finalStr = XML.toString(jsonObject);
         JSONObject finalJsonObject = XML.toJSONObject(finalStr);
-        String expectedStr = "<addresses><address><name/><nocontent/>"+
+        String expectedStr = "<addresses><address><name></name><nocontent/>"+
                 "<outer><array>1</array></outer><outer><array>2</array>"+
                 "</outer><outer><array>3</array></outer>"+
                 "</address><xsi:noNamespaceSchemaLocation>test.xsd</xsi:noName"+
@@ -518,9 +519,9 @@ public class XMLTest {
          * This is the current behavior. JSONObject.NULL is emitted as 
          * the string, "null".
          */
-        String actualXML = "<nullValue>null</nullValue>";
+        String expectedXML = "<nullValue/>";
         String resultXML = XML.toString(inputJSON);
-        assertEquals(actualXML, resultXML);
+        assertEquals(expectedXML, resultXML);
     }
 
     /**
@@ -587,7 +588,7 @@ public class XMLTest {
         assertTrue("5. jsonObject found", jsonObject.get("tag1") instanceof JSONObject);
         jsonObject = jsonObject.getJSONObject("tag1");
         assertTrue("5. 2 contained items", 2 == jsonObject.length());
-        assertTrue("5. contained tag", "".equals(jsonObject.get("tag2")));
+        assertTrue("5. contained tag", JSONObject.NULL.equals(jsonObject.get("tag2")));
         assertTrue("5. contained content jsonArray found", jsonObject.get("content") instanceof JSONArray);
         jsonArray = jsonObject.getJSONArray("content");
         assertTrue("5. array size", jsonArray.length() == 2);
@@ -604,7 +605,7 @@ public class XMLTest {
         assertTrue("6. jsonObject found", jsonObject.get("tag1") instanceof JSONObject);
         jsonObject = jsonObject.getJSONObject("tag1");
         assertTrue("6. contained content found", "val1".equals(jsonObject.get("content")));
-        assertTrue("6. contained tag2", "".equals(jsonObject.get("tag2")));
+        assertTrue("6. contained tag2", JSONObject.NULL.equals(jsonObject.get("tag2")));
 
         /*
          * In this corner case, the content sibling happens to have key=content
@@ -621,7 +622,7 @@ public class XMLTest {
         jsonArray = jsonArray.getJSONArray(0);
         assertTrue("7. inner array size 2", jsonArray.length() == 2);
         assertTrue("7. inner array item 0", "val1".equals(jsonArray.get(0)));
-        assertTrue("7. inner array item 1", "".equals(jsonArray.get(1)));
+        assertTrue("7. inner array item 1", JSONObject.NULL.equals(jsonArray.get(1)));
 
         /*
          * Confirm behavior of original issue
