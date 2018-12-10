@@ -32,7 +32,7 @@ public enum SingletonEnum {
 
     /** @return someInt */
     public int getSomeInt() {
-        return someInt;
+        return this.someInt;
     }
 
     /**
@@ -47,7 +47,7 @@ public enum SingletonEnum {
 
     /** @return someString */
     public String getSomeString() {
-        return someString;
+        return this.someString;
     }
 
     /**

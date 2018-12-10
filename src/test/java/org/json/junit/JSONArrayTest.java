@@ -406,7 +406,7 @@ public class JSONArrayTest {
         assertTrue("expected \"true\"", "true".equals(jsonArray.query("/2")));
         assertTrue("expected \"false\"", "false".equals(jsonArray.query("/3")));
         assertTrue("expected hello", "hello".equals(jsonArray.query("/4")));
-        assertTrue("expected 0.002345", Double.valueOf(0.002345).equals(jsonArray.query("/5")));
+        assertTrue("expected 0.002345", BigDecimal.valueOf(0.002345).equals(jsonArray.query("/5")));
         assertTrue("expected \"23.45\"", "23.45".equals(jsonArray.query("/6")));
         assertTrue("expected 42", Integer.valueOf(42).equals(jsonArray.query("/7")));
         assertTrue("expected \"43\"", "43".equals(jsonArray.query("/8")));
@@ -473,7 +473,7 @@ public class JSONArrayTest {
            new Float(jsonArray.optFloat(99)).isNaN());
 
         assertTrue("Array opt Number",
-                new Double(23.45e-4).equals(jsonArray.optNumber(5)));
+                BigDecimal.valueOf(23.45e-4).equals(jsonArray.optNumber(5)));
         assertTrue("Array opt Number default",
                 new Double(1).equals(jsonArray.optNumber(0, 1d)));
         assertTrue("Array opt Number default implicit",
@@ -835,7 +835,7 @@ public class JSONArrayTest {
      */
     @SuppressWarnings("boxing")
     @Test
-    public void iterator() {
+    public void iteratorTest() {
         JSONArray jsonArray = new JSONArray(this.arrayStr);
         Iterator<Object> it = jsonArray.iterator();
         assertTrue("Array true",
@@ -849,8 +849,8 @@ public class JSONArrayTest {
         assertTrue("Array string",
                 "hello".equals(it.next()));
 
-        assertTrue("Array double",
-                new Double(23.45e-4).equals(it.next()));
+        assertTrue("Array double [23.45e-4]",
+                new BigDecimal("0.002345").equals(it.next()));
         assertTrue("Array string double",
                 new Double(23.45).equals(Double.parseDouble((String)it.next())));
 
@@ -896,15 +896,12 @@ public class JSONArrayTest {
         String str = "[\"value1\",\"value2\",{\"key1\":1,\"key2\":2,\"key3\":3}]";
         JSONArray jsonArray = new JSONArray(str);
         String expectedStr = str;
-        StringWriter stringWriter = new StringWriter();
-        try {
+        try (StringWriter stringWriter = new StringWriter();) {
             jsonArray.write(stringWriter);
             String actualStr = stringWriter.toString();
             assertTrue("write() expected " + expectedStr +
                             " but found " + actualStr,
                     expectedStr.equals(actualStr));
-        } finally {
-            stringWriter.close();
         }
     }
 
@@ -944,20 +941,15 @@ public class JSONArrayTest {
                 " ]";
         JSONArray jsonArray = new JSONArray(str0);
         String expectedStr = str0;
-        StringWriter stringWriter = new StringWriter();
-        try {
+        try (StringWriter stringWriter = new StringWriter();) {
             String actualStr = jsonArray.write(stringWriter, 0, 0).toString();
             assertEquals(expectedStr, actualStr);
-        } finally {
-            stringWriter.close();
         }
-        stringWriter = new StringWriter();
-        try {
+        
+        try (StringWriter stringWriter = new StringWriter();) {
             expectedStr = str2;
             String actualStr = jsonArray.write(stringWriter, 2, 1).toString();
             assertEquals(expectedStr, actualStr);
-        } finally {
-            stringWriter.close();
         }
     }
 
@@ -1055,7 +1047,7 @@ public class JSONArrayTest {
         assertTrue("val3 list val 1 should not be null", val3Val1List != null);
         assertTrue("val3 list val 1 should have 2 elements", val3Val1List.size() == 2);
         assertTrue("val3 list val 1 list element 1 should be value1", val3Val1List.get(0).equals("value1"));
-        assertTrue("val3 list val 1 list element 2 should be 2.1", val3Val1List.get(1).equals(Double.valueOf("2.1")));
+        assertTrue("val3 list val 1 list element 2 should be 2.1", val3Val1List.get(1).equals(new BigDecimal("2.1")));
 
         List<?> val3Val2List = (List<?>)val3List.get(1);
         assertTrue("val3 list val 2 should not be null", val3Val2List != null);

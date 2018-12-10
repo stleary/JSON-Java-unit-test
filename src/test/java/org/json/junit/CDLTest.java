@@ -264,8 +264,8 @@ public class CDLTest {
      */
     @Test
     public void textToJSONArray() {
-        JSONArray jsonArray = CDL.toJSONArray(lines);
-        JSONArray expectedJsonArray = new JSONArray(expectedLines);
+        JSONArray jsonArray = CDL.toJSONArray(this.lines);
+        JSONArray expectedJsonArray = new JSONArray(this.expectedLines);
         Util.compareActualVsExpectedJsonArrays(jsonArray, expectedJsonArray);
     }
 
@@ -289,10 +289,10 @@ public class CDLTest {
      */
     @Test
     public void textToJSONArrayAndBackToString() {
-        JSONArray jsonArray = CDL.toJSONArray(lines);
+        JSONArray jsonArray = CDL.toJSONArray(this.lines);
         String jsonStr = CDL.toString(jsonArray);
         JSONArray finalJsonArray = CDL.toJSONArray(jsonStr);
-        JSONArray expectedJsonArray = new JSONArray(expectedLines);
+        JSONArray expectedJsonArray = new JSONArray(this.expectedLines);
         Util.compareActualVsExpectedJsonArrays(finalJsonArray, expectedJsonArray);
     }
     
