@@ -1,7 +1,7 @@
 # JSON-Java-unit-test
 
 
-# This project is no longer the source of truth for JSON-Java unit tests and it not accepting pull requests. The unit tests have been ported to [https://github.com/stleary/JSON-java](https://github.com/stleary/JSON-java) so that code and tests reside together. If this move works out, then future unit test changes will be performed there. 
+# This project is no longer accepting pull requests. It is not the source of truth for JSON-Java unit tests. The unit tests have been ported to [https://github.com/stleary/JSON-java](https://github.com/stleary/JSON-java) so that code and tests reside together. Please submit all pull requests to the new location.
 
 Unit tests to validate the JSON-Java GitHub project code<br>
 
